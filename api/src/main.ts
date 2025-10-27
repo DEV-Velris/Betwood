@@ -23,12 +23,12 @@ async function bootstrap() {
   const betterAuthDocument = await auth.api.generateOpenAPISchema();
   // JSON OpenAPI
   writeFileSync(
-    join(process.cwd(), 'api-openapi.json'),
+    join(__dirname, 'api-openapi.json'),
     JSON.stringify(document, null, 2),
   );
   // JSON BetterAuth OpenAPI
   writeFileSync(
-    join(process.cwd(), 'better-auth-openapi.json'),
+    join(__dirname, 'better-auth-openapi.json'),
     JSON.stringify(betterAuthDocument, null, 2),
   );
 
