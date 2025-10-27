@@ -7,16 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum GroupVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
 model User {
-  id            String    @id
+  id            String   @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  sessions           Session[]
+  accounts           Account[]
+  PronoGroup         PronoGroup[]
+  PronoGroupMember   PronoGroupMember[]
+  GlobalChampionPick GlobalChampionPick[]
+  HotSawPick         HotSawPick[]
 
   @@unique([email])
   @@map("user")
@@ -65,4 +81,100 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+model Athlete {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  countryCode String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  champions          CompetitionResult[]  @relation("champions")
+  hotSawWins         CompetitionResult[]  @relation("hotSawWinner")
+  GlobalChampionPick GlobalChampionPick[]
+  HotSawPick         HotSawPick[]
+}
+
+model Competition {
+  id        String    @id @default(cuid())
+  name      String
+  startAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+
+  CompetitionResults CompetitionResult[]
+  PronoGroup         PronoGroup[]
+  GlobalChampionPick GlobalChampionPick[]
+  HotSawPick         HotSawPick[]
+}
+
+model CompetitionResult {
+  id                String    @id @default(cuid())
+  competitionId     String    @unique
+  championAthleteId String?
+  hotSawWinnerId    String?
+  publishedAt       DateTime?
+
+  competition  Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  champion     Athlete?    @relation("champions", fields: [championAthleteId], references: [id], onDelete: Cascade)
+  hotSawWinner Athlete?    @relation("hotSawWinner", fields: [hotSawWinnerId], references: [id], onDelete: Cascade)
+}
+
+model PronoGroup {
+  id            String          @id @default(cuid())
+  name          String
+  visibility    GroupVisibility @default(PRIVATE)
+  ownerId       String
+  competitionId String
+  inviteCode    String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+
+  owner       User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  competition Competition        @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  members     PronoGroupMember[]
+}
+
+model PronoGroupMember {
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group PronoGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+}
+
+model GlobalChampionPick {
+  id            String    @id @default(cuid())
+  userId        String
+  competitionId String
+  athleteId     String
+  lockedAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  athlete     Athlete     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, competitionId])
+}
+
+model HotSawPick {
+  id            String    @id @default(cuid())
+  userId        String
+  competitionId String
+  athleteId     String
+  lockedAt      DateTime?
+  createdAt     DateTime  @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  athlete     Athlete     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, competitionId])
 }
