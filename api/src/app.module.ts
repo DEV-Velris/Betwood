@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { auth } from '../lib/auth';
-import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -13,7 +12,7 @@ import { UsersController } from './users/users.controller';
     }),
     AuthModule.forRoot({ auth }),
   ],
-  controllers: [AppController, UsersController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
