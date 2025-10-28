@@ -7,6 +7,9 @@ export class CreateAthleteDto {
   @ApiProperty({ description: 'Last name of the athlete', example: 'Doe' })
   lastName!: string;
 
-  @ApiPropertyOptional({ description: 'ISO country code (e.g., FR, US)', example: 'FR' })
+  @ApiPropertyOptional({
+    description: 'ISO country code (e.g., FR, US)',
+    example: 'FR',
+  })
   countryCode?: string;
 }

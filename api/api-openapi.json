@@ -1,17 +1,388 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/": {
+    "/groups": {
+      "post": {
+        "operationId": "GroupsController_createGroup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The group has been successfully created."
+          }
+        },
+        "summary": "Create a group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/groups/{groupId}/join": {
+      "post": {
+        "operationId": "GroupsController_joinGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Join a group by invite code",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/groups/{groupId}": {
       "get": {
-        "operationId": "AppController_getHello",
+        "operationId": "GroupsController_getGroupById",
+        "parameters": [
+          {
+            "name": "groupId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get group by ID",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/groups/{groupId}/members/me": {
+      "delete": {
+        "operationId": "GroupsController_leaveGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Leave a group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/competitions/{competitionId}/picks/global-champion": {
+      "put": {
+        "operationId": "CompetitionsController_upsertGlobalChampion",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertPickDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pick saved"
+          }
+        },
+        "summary": "Upsert my global champion pick (bucheronnage sportif)",
+        "tags": [
+          "competitions"
+        ]
+      }
+    },
+    "/competitions/{competitionId}/picks/global-champion/me": {
+      "get": {
+        "operationId": "CompetitionsController_getMyGlobalChampion",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get my global champion pick",
+        "tags": [
+          "competitions"
+        ]
+      }
+    },
+    "/competitions/{competitionId}/picks/hot-saw": {
+      "put": {
+        "operationId": "CompetitionsController_upsertHotSaw",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertPickDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pick saved"
+          }
+        },
+        "summary": "Upsert my Hot Saw event pick",
+        "tags": [
+          "competitions"
+        ]
+      }
+    },
+    "/competitions/{competitionId}/picks/hot-saw/me": {
+      "get": {
+        "operationId": "CompetitionsController_getMyHotSaw",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get my Hot Saw pick",
+        "tags": [
+          "competitions"
+        ]
+      }
+    },
+    "/competitions/{competitionId}/results": {
+      "get": {
+        "operationId": "CompetitionsController_getResults",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get competition results (champion and Hot Saw winner)",
+        "tags": [
+          "competitions"
+        ]
+      },
+      "put": {
+        "operationId": "CompetitionsController_updateResults",
+        "parameters": [
+          {
+            "name": "competitionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResultsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Results updated"
+          }
+        },
+        "summary": "Update competition results; optionally publish to lock picks",
+        "tags": [
+          "competitions"
+        ]
+      }
+    },
+    "/athletes": {
+      "get": {
+        "operationId": "AthletesController_findAll",
         "parameters": [],
         "responses": {
           "200": {
             "description": ""
           }
         },
+        "summary": "List all athletes",
         "tags": [
-          "App"
+          "athletes"
+        ]
+      },
+      "post": {
+        "operationId": "AthletesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAthleteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Athlete created"
+          }
+        },
+        "summary": "Create a new athlete",
+        "tags": [
+          "athletes"
+        ]
+      }
+    },
+    "/athletes/{id}": {
+      "get": {
+        "operationId": "AthletesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get athlete by ID",
+        "tags": [
+          "athletes"
+        ]
+      },
+      "put": {
+        "operationId": "AthletesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAthleteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Athlete updated"
+          }
+        },
+        "summary": "Update an existing athlete",
+        "tags": [
+          "athletes"
+        ]
+      },
+      "delete": {
+        "operationId": "AthletesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Athlete deleted"
+          }
+        },
+        "summary": "Delete an athlete",
+        "tags": [
+          "athletes"
         ]
       }
     }
@@ -25,6 +396,89 @@
   "tags": [],
   "servers": [],
   "components": {
-    "schemas": {}
+    "schemas": {
+      "CreateGroupDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpsertPickDto": {
+        "type": "object",
+        "properties": {
+          "athleteId": {
+            "type": "string",
+            "description": "Athlete ID being picked",
+            "example": "cku123abc"
+          }
+        },
+        "required": [
+          "athleteId"
+        ]
+      },
+      "UpdateResultsDto": {
+        "type": "object",
+        "properties": {
+          "championAthleteId": {
+            "type": "object",
+            "description": "Champion athlete ID",
+            "example": "ath_123",
+            "nullable": true
+          },
+          "hotSawWinnerId": {
+            "type": "object",
+            "description": "Hot Saw winner athlete ID",
+            "example": "ath_456",
+            "nullable": true
+          },
+          "publish": {
+            "type": "boolean",
+            "description": "Publish results and lock picks"
+          }
+        }
+      },
+      "CreateAthleteDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "First name of the athlete",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name of the athlete",
+            "example": "Doe"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO country code (e.g., FR, US)",
+            "example": "FR"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName"
+        ]
+      },
+      "UpdateAthleteDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "First name of the athlete",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name of the athlete",
+            "example": "Doe"
+          },
+          "countryCode": {
+            "type": "object",
+            "description": "ISO country code (e.g., FR, US)",
+            "example": "FR"
+          }
+        }
+      }
+    }
   }
 }

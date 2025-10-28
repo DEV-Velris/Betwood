@@ -28,7 +28,7 @@ export class AthletesController {
   @ApiOperation({ summary: 'Get athlete by ID' })
   findOne(@Param('id') id: string) {
     return this.athletesService.findOne(id);
-    }
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new athlete' })
