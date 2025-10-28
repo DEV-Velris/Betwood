@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import styles from './dashboard.module.css';
+import { useAuth } from '@/contexts/AuthContext';
+import styles from './home.module.css';
 
-export default function Dashboard() {
-  const [selectedDiscipline, setSelectedDiscipline] = useState('all');
+export default function Home() {
+  const { user, loading, signOut } = useAuth();
+  const [selectedDiscipline, setSelectedDiscipline] = useState('axe');
+  const [selectedCompetition, setSelectedCompetition] = useState<string | null>(null);
   const [betSlipItems, setBetSlipItems] = useState<any[]>([]);
 
   const disciplines = [
-    { id: 'all', name: 'Les plus populaires', icon: '' },
+    { id: 'all', name: 'Les plus populaires', icon: '', count: 0 },
     { id: 'axe', name: 'Hache', icon: '', count: 12 },
     { id: 'chainsaw', name: 'Tronçonneuse', icon: '', count: 8 },
     { id: 'saw', name: 'Scie', icon: '', count: 6 },
@@ -49,6 +52,12 @@ export default function Dashboard() {
   ];
 
   const addToBetSlip = (match: any, athleteChoice: 'athlete1' | 'athlete2') => {
+    if (!user) {
+      // Redirection vers login si non connecté
+      window.location.href = '/auth/login';
+      return;
+    }
+
     const athlete = match[athleteChoice];
     const odds = match.odds[athleteChoice];
 
@@ -80,8 +89,23 @@ export default function Dashboard() {
           </nav>
 
           <div className={styles.authButtons}>
-            <Link href="/auth/login" className={styles.btnLogin}>Connexion</Link>
-            <Link href="/auth/register" className={styles.btnSignup}>Inscription</Link>
+            {loading ? (
+              <div className={styles.loadingSpinner}></div>
+            ) : user ? (
+              <>
+                <span className={styles.userName}>
+                  {user.name}
+                </span>
+                <button onClick={signOut} className={styles.btnSignup}>
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className={styles.btnLogin}>Connexion</Link>
+                <Link href="/auth/register" className={styles.btnSignup}>Inscription</Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -91,25 +115,34 @@ export default function Dashboard() {
         {/* Left Column - Navigation & Filters */}
         <aside className={styles.leftColumn}>
           <div className={styles.searchBox}>
-            <span className={styles.searchIcon}></span>
+            <span className={styles.searchIcon}>🔍</span>
             <input
               type="text"
-              placeholder="Rechercher une compétition, un athlète..."
+              placeholder="Rechercher..."
               className={styles.searchInput}
             />
           </div>
 
           <div className={styles.navSection}>
             <h3 className={styles.navSectionTitle}>TOP DES COMPÉTITIONS</h3>
-            <button className={styles.navItem}>
+            <button
+              className={styles.navItem}
+              onClick={() => setSelectedCompetition(selectedCompetition === 'world' ? null : 'world')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Championnat du Monde</span>
             </button>
-            <button className={styles.navItem}>
+            <button
+              className={styles.navItem}
+              onClick={() => setSelectedCompetition(selectedCompetition === 'trophy' ? null : 'trophy')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Trophée des Champions</span>
             </button>
-            <button className={styles.navItem}>
+            <button
+              className={styles.navItem}
+              onClick={() => setSelectedCompetition(selectedCompetition === 'national' ? null : 'national')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Championnats Nationaux</span>
             </button>
@@ -117,17 +150,26 @@ export default function Dashboard() {
 
           <div className={styles.navSection}>
             <h3 className={styles.navSectionTitle}>DISCIPLINES</h3>
-            <button className={styles.navItem + ' ' + styles.navItemActive}>
+            <button
+              className={`${styles.navItem} ${selectedDiscipline === 'axe' ? styles.navItemActive : ''}`}
+              onClick={() => setSelectedDiscipline('axe')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Épreuves à la Hache</span>
               <span className={styles.navCount}>12</span>
             </button>
-            <button className={styles.navItem}>
+            <button
+              className={`${styles.navItem} ${selectedDiscipline === 'chainsaw' ? styles.navItemActive : ''}`}
+              onClick={() => setSelectedDiscipline('chainsaw')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Épreuves à la Tronçonneuse</span>
               <span className={styles.navCount}>8</span>
             </button>
-            <button className={styles.navItem}>
+            <button
+              className={`${styles.navItem} ${selectedDiscipline === 'saw' ? styles.navItemActive : ''}`}
+              onClick={() => setSelectedDiscipline('saw')}
+            >
               <span className={styles.navIcon}></span>
               <span className={styles.navText}>Épreuves à la Scie</span>
               <span className={styles.navCount}>6</span>
@@ -142,37 +184,45 @@ export default function Dashboard() {
             <div className={styles.promoContent}>
               <div className={styles.promoIcon}></div>
               <div className={styles.promoText}>
-                <div className={styles.promoTitle}>Bonus de bienvenue</div>
-                <div className={styles.promoDesc}>100€ offerts pour votre premier pari</div>
+                <div className={styles.promoTitle}>Rejoignez la compétition</div>
+                <div className={styles.promoDesc}>Pariez entre amis et gagnez des points</div>
               </div>
             </div>
-            <button className={styles.promoBtn}>En profiter</button>
+            {!user ? (
+              <Link href="/auth/register" className={styles.promoBtn}>Commencer</Link>
+            ) : (
+              <button className={styles.promoBtn}>Créer un groupe</button>
+            )}
           </div>
 
-          {/* Secondary Nav */}
-          <div className={styles.secondaryNav}>
-            <button className={styles.secondaryNavItem + ' ' + styles.secondaryNavItemActive}>
-              Top des paris
-            </button>
-            <button className={styles.secondaryNavItem}>
-              <span className={styles.liveDotSmall}></span>
-              Maintenant
-            </button>
-          </div>
 
           {/* Category Filters */}
           <div className={styles.categoryFilters}>
-            {disciplines.map(disc => (
-              <button
-                key={disc.id}
-                className={`${styles.filterChip} ${selectedDiscipline === disc.id ? styles.filterChipActive : ''}`}
-                onClick={() => setSelectedDiscipline(disc.id)}
-              >
-                <span>{disc.icon}</span>
-                <span>{disc.name}</span>
-                {disc.count && <span className={styles.filterCount}>{disc.count}</span>}
-              </button>
-            ))}
+            {disciplines.map(disc => {
+              const isActive = selectedDiscipline === disc.id;
+              return (
+                <button
+                  key={disc.id}
+                  className={`${styles.filterChip} ${isActive ? styles.filterChipActive : ''}`}
+                  onClick={() => setSelectedDiscipline(disc.id)}
+                  style={isActive ? { color: 'white' } : {}}
+                  onMouseEnter={(e) => {
+                    if (isActive) {
+                      e.currentTarget.style.color = 'white';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isActive) {
+                      e.currentTarget.style.color = 'white';
+                    }
+                  }}
+                >
+                  <span style={isActive ? { color: 'white' } : {}}>{disc.icon}</span>
+                  <span style={isActive ? { color: 'white' } : {}}>{disc.name}</span>
+                  {disc.count && <span className={styles.filterCount} style={isActive ? { color: 'white' } : {}}>{disc.count}</span>}
+                </button>
+              );
+            })}
           </div>
 
           {/* Match Cards */}
@@ -254,8 +304,17 @@ export default function Dashboard() {
             {betSlipItems.length === 0 ? (
               <div className={styles.betSlipEmpty}>
                 <div className={styles.emptyIcon}></div>
-                <div className={styles.emptyText}>Placez un nouveau pari</div>
-                <div className={styles.emptyHint}>Cliquez sur une cote pour commencer</div>
+                <div className={styles.emptyText}>
+                  {user ? 'Placez un nouveau pari' : 'Connectez-vous pour parier'}
+                </div>
+                <div className={styles.emptyHint}>
+                  {user ? 'Cliquez sur une cote pour commencer' : ''}
+                </div>
+                {!user && (
+                  <Link href="/auth/login" className={styles.emptyLink}>
+                    Se connecter
+                  </Link>
+                )}
               </div>
             ) : (
               <div className={styles.betSlipContent}>
@@ -263,7 +322,9 @@ export default function Dashboard() {
                   <div key={index} className={styles.betItem}>
                     <div className={styles.betItemHeader}>
                       <span className={styles.betItemDiscipline}>{item.discipline}</span>
-                      <button className={styles.betItemRemove}>×</button>
+                      <button className={styles.betItemRemove} onClick={() => {
+                        setBetSlipItems(betSlipItems.filter((_, i) => i !== index));
+                      }}>×</button>
                     </div>
                     <div className={styles.betItemName}>{item.athleteName}</div>
                     <div className={styles.betItemOdds}>Cote: {item.odds}</div>

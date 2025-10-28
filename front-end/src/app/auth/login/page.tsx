@@ -1,95 +1,128 @@
+'use client';
+
+import { useState, FormEvent, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
+import styles from './login.module.css';
+
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const { signIn, loading, error, clearError } = useAuth();
+
+  // Nettoyer l'erreur uniquement au montage du composant (une seule fois)
+  useEffect(() => {
+    clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dépendances vides = s'exécute une seule fois au montage
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    clearError();
+
+    try {
+      await signIn({ email, password, rememberMe });
+      // Si on arrive ici, la connexion a réussi
+    } catch (err) {
+      // L'erreur est déjà gérée par le contexte Auth et disponible via `error`
+      console.error('Login error:', err);
+    }
+  };
+
   return (
-    <main className="min-h-screen gradient-forest relative overflow-hidden flex items-center justify-center p-4">
-      {/* Background decorations */}
-      <div className="absolute inset-0 wood-texture opacity-20"></div>
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
-
-      <div className="relative z-10 w-full max-w-md animate-scale-in">
-        <div className="glass-effect p-8 md:p-10 rounded-3xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-block p-3 bg-gradient-to-br from-primary to-primary-dark rounded-2xl mb-4" style={{background: 'linear-gradient(135deg, #10B981, #059669)'}}>
-              <span className="text-4xl"></span>
-            </div>
-            <h1 className="text-3xl font-display font-bold text-wood-dark mb-2">
-              L&apos;Entrée de la Forêt
-            </h1>
-            <p className="text-wood-medium">Bienvenue parmi les bûcherons</p>
-          </div>
-
-          {/* Form */}
-          <form className="space-y-5">
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-wood-dark mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="input-modern"
-                placeholder="votre@email.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-wood-dark mb-2">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="input-modern"
-                placeholder="••••••••"
-              />
-            </div>
-
-            <button type="submit" className="btn-primary w-full">
-              Se Connecter
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-sand"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-wood-medium">ou</span>
-            </div>
-          </div>
-
-          {/* Links */}
-          <div className="space-y-3 text-center">
-            <a
-              href="/auth/register"
-              className="block text-leaf-green hover:text-moss-green font-semibold transition-colors"
-            >
-              Créer un compte gratuitement
-            </a>
-            <a
-              href="/auth/forgot-password"
-              className="block text-wood-light hover:text-wood-medium text-sm transition-colors"
-            >
-              Mot de passe oublié ?
-            </a>
-          </div>
+    <div className={styles.authContainer}>
+      <div className={styles.authCard}>
+        <div className={styles.authHeader}>
+          <Link href="/" className={styles.logo}>
+            <span className={styles.logoText}>BETWOOD</span>
+          </Link>
+          <h1 className={styles.title}>Connexion</h1>
+          <p className={styles.subtitle}>Content de vous revoir !</p>
         </div>
 
-        {/* Back to home */}
-        <div className="text-center mt-6">
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 text-white/90 hover:text-white font-medium transition-colors"
+        {error && (
+          <div className={styles.errorBox}>
+            <span className={styles.errorIcon}>⚠️</span>
+            <p className={styles.errorText}>{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="email" className={styles.label}>
+              Adresse email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={styles.input}
+              placeholder="votre.email@exemple.com"
+              disabled={loading}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="password" className={styles.label}>
+              Mot de passe
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={styles.input}
+              placeholder="••••••••"
+              disabled={loading}
+            />
+          </div>
+
+          <div className={styles.formOptions}>
+            <label className={styles.checkbox}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
+              />
+              <span>Se souvenir de moi</span>
+            </label>
+
+            <Link href="/forgot-password" className={styles.forgotLink}>
+              Mot de passe oublié ?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.submitBtn}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Retour à l&apos;accueil
-          </a>
+            {loading ? (
+              <span className={styles.loadingSpinner}></span>
+            ) : (
+              'Se connecter'
+            )}
+          </button>
+        </form>
+
+        <div className={styles.authFooter}>
+          <p className={styles.footerText}>
+            Pas encore de compte ?{' '}
+            <Link href="/auth/register" className={styles.footerLink}>
+              S'inscrire gratuitement
+            </Link>
+          </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
