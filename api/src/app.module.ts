@@ -7,6 +7,10 @@ import { auth } from '../lib/auth';
 import { GroupsService } from './groups/groups.service';
 import { GroupsController } from './groups/groups.controller';
 import { PrismaService } from './prisma.service';
+import { CompetitionsController } from './competitions/competitions.controller';
+import { CompetitionsService } from './competitions/competitions.service';
+import { AthletesController } from './athletes/athletes.controller';
+import { AthletesService } from './athletes/athletes.service';
 
 @Module({
   imports: [
@@ -15,7 +19,18 @@ import { PrismaService } from './prisma.service';
     }),
     AuthModule.forRoot({ auth }),
   ],
-  controllers: [AppController, GroupsController],
-  providers: [AppService, PrismaService, GroupsService],
+  controllers: [
+    AppController,
+    GroupsController,
+    CompetitionsController,
+    AthletesController,
+  ],
+  providers: [
+    AppService,
+    PrismaService,
+    GroupsService,
+    CompetitionsService,
+    AthletesService,
+  ],
 })
 export class AppModule {}
