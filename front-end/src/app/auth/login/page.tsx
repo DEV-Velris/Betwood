@@ -11,10 +11,11 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const { signIn, loading, error, clearError } = useAuth();
 
-  // Nettoyer l'erreur au montage du composant
+  // Nettoyer l'erreur uniquement au montage du composant (une seule fois)
   useEffect(() => {
     clearError();
-  }, [clearError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dépendances vides = s'exécute une seule fois au montage
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,7 +23,9 @@ export default function LoginPage() {
 
     try {
       await signIn({ email, password, rememberMe });
+      // Si on arrive ici, la connexion a réussi
     } catch (err) {
+      // L'erreur est déjà gérée par le contexte Auth et disponible via `error`
       console.error('Login error:', err);
     }
   };

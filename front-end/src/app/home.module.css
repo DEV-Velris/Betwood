@@ -53,6 +53,11 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
+  pointer-events: none;
+}
+
+.mainNav > * {
+  pointer-events: auto;
 }
 
 .navLink {
@@ -138,6 +143,7 @@
   top: 96px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
+  z-index: 10;
 }
 
 .searchBox {
@@ -201,6 +207,7 @@
   margin-bottom: 4px;
   text-align: left;
   position: relative;
+  z-index: 1;
 }
 
 .navItem:hover {
@@ -359,6 +366,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .secondaryNavItem:hover {
@@ -403,8 +412,18 @@
 .filterChipActive {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   border-color: var(--primary);
-  color: white;
+  color: white !important;
   box-shadow: var(--shadow-md);
+}
+
+.filterChipActive:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  transform: translateY(-2px);
+  color: white !important;
+}
+
+.filterChipActive * {
+  color: white !important;
 }
 
 .filterCount {
@@ -413,6 +432,7 @@
   background: rgba(255, 255, 255, 0.3);
   padding: 2px 8px;
   border-radius: 6px;
+  color: inherit;
 }
 
 /* === MATCH CARDS === */

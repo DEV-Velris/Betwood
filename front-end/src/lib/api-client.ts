@@ -81,19 +81,13 @@ class ApiClient {
 
   async signIn(data: SignInRequest): Promise<AuthResponse> {
     try {
-      console.log('[ApiClient] 🚀 Envoi de la requête de connexion...', data);
       const response = await this.client.post<AuthResponse>('/sign-in/email', data);
-      console.log('[ApiClient] 📦 Réponse COMPLÈTE du serveur:', response);
-      console.log('[ApiClient] 📦 Status:', response.status);
-      console.log('[ApiClient] 📦 Data:', response.data);
 
       // Vérifier que la réponse contient bien un utilisateur et un token
       if (!response.data || !response.data.user) {
-        console.error('[ApiClient] ❌ Réponse invalide du serveur - pas de user');
         throw new Error('Réponse invalide du serveur');
       }
 
-      console.log('[ApiClient] ✅ Authentification réussie!');
       // Stocker le token dans les cookies
       if (response.data.token) {
         Cookies.set('auth_token', response.data.token, {
@@ -105,11 +99,8 @@ class ApiClient {
 
       return response.data;
     } catch (error) {
-      console.error('[ApiClient] 💥 ERREUR CATCHÉE lors de la connexion:', error);
-      console.error('[ApiClient] 💥 Type d\'erreur:', error instanceof Error ? 'Error' : typeof error);
       // Nettoyer TOUS les cookies d'authentification en cas d'erreur
       Cookies.remove('auth_token');
-      // Better Auth utilise aussi ce cookie
       Cookies.remove('better-auth.session_token');
       throw this.handleError(error);
     }
@@ -195,16 +186,18 @@ class ApiClient {
       const apiError = error.response?.data as ApiError;
 
       // Traduire les messages d'erreur Better Auth en français
-      if (apiError?.code === 'INVALID_EMAIL_OR_PASSWORD') {
-        return new Error('Email ou mot de passe incorrect');
-      }
-
-      if (apiError?.code === 'USER_NOT_FOUND') {
-        return new Error('Aucun compte associé à cet email');
+      if (apiError?.code === 'INVALID_EMAIL_OR_PASSWORD' || apiError?.code === 'USER_NOT_FOUND') {
+        return new Error('Email ou mot de passe invalide');
       }
 
       if (apiError?.code === 'EMAIL_ALREADY_EXISTS') {
         return new Error('Un compte existe déjà avec cet email');
+      }
+
+      // Si c'est une erreur 401 ou 400 sur sign-in, c'est probablement un email/mdp invalide
+      if ((error.response?.status === 401 || error.response?.status === 400) &&
+          error.config?.url?.includes('/sign-in')) {
+        return new Error('Email ou mot de passe invalide');
       }
 
       // Message générique ou message de l'API

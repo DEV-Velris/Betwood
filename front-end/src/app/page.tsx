@@ -195,30 +195,34 @@ export default function Home() {
             )}
           </div>
 
-          {/* Secondary Nav */}
-          <div className={styles.secondaryNav}>
-            <button className={styles.secondaryNavItem + ' ' + styles.secondaryNavItemActive}>
-              Top des paris
-            </button>
-            <button className={styles.secondaryNavItem}>
-              <span className={styles.liveDotSmall}></span>
-              Maintenant
-            </button>
-          </div>
 
           {/* Category Filters */}
           <div className={styles.categoryFilters}>
-            {disciplines.map(disc => (
-              <button
-                key={disc.id}
-                className={`${styles.filterChip} ${selectedDiscipline === disc.id ? styles.filterChipActive : ''}`}
-                onClick={() => setSelectedDiscipline(disc.id)}
-              >
-                <span>{disc.icon}</span>
-                <span>{disc.name}</span>
-                {disc.count && <span className={styles.filterCount}>{disc.count}</span>}
-              </button>
-            ))}
+            {disciplines.map(disc => {
+              const isActive = selectedDiscipline === disc.id;
+              return (
+                <button
+                  key={disc.id}
+                  className={`${styles.filterChip} ${isActive ? styles.filterChipActive : ''}`}
+                  onClick={() => setSelectedDiscipline(disc.id)}
+                  style={isActive ? { color: 'white' } : {}}
+                  onMouseEnter={(e) => {
+                    if (isActive) {
+                      e.currentTarget.style.color = 'white';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isActive) {
+                      e.currentTarget.style.color = 'white';
+                    }
+                  }}
+                >
+                  <span style={isActive ? { color: 'white' } : {}}>{disc.icon}</span>
+                  <span style={isActive ? { color: 'white' } : {}}>{disc.name}</span>
+                  {disc.count && <span className={styles.filterCount} style={isActive ? { color: 'white' } : {}}>{disc.count}</span>}
+                </button>
+              );
+            })}
           </div>
 
           {/* Match Cards */}

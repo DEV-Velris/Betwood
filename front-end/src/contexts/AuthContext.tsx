@@ -31,19 +31,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshSession = async () => {
     try {
       setLoading(true);
-      console.log('[AuthContext] Vérification de la session...');
       const session = await apiClient.getSession();
-      console.log('[AuthContext] Session reçue:', session);
 
       if (session) {
-        console.log('[AuthContext] Session valide trouvée');
         setUser(session.user);
       } else {
-        console.log('[AuthContext] Aucune session');
         setUser(null);
       }
     } catch (err) {
-      console.error('[AuthContext] Error refreshing session:', err);
+      console.error('Error refreshing session:', err);
       setUser(null);
     } finally {
       setLoading(false);
@@ -80,40 +76,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signIn = async (data: SignInRequest) => {
-    let success = false;
     try {
       setLoading(true);
       setError(null);
-      console.log('[AuthContext] Tentative de connexion...');
       const response = await apiClient.signIn(data);
-      console.log('[AuthContext] Réponse reçue:', response);
 
       // Vérifier que nous avons bien reçu un utilisateur valide
       if (!response.user || !response.user.id) {
-        console.error('[AuthContext] Réponse invalide - pas d\'utilisateur');
         throw new Error('Authentification échouée');
       }
 
-      console.log('[AuthContext] Utilisateur valide');
       setUser(response.user);
-      success = true;
+      router.push('/');
     } catch (err) {
-      console.error('[AuthContext] Erreur de connexion:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la connexion';
-      setError(errorMessage);
-      // S'assurer que l'utilisateur est null en cas d'erreur
       setUser(null);
-      // Re-lancer l'erreur pour que le composant sache qu'il y a eu une erreur
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
-      // Rediriger UNIQUEMENT si la connexion a réussi
-      if (success) {
-        console.log('[AuthContext] ✅ CONNEXION RÉUSSIE - Redirection vers page d\'accueil');
-        router.push('/');
-      } else {
-        console.log('[AuthContext] ❌ ÉCHEC DE CONNEXION - Pas de redirection');
-      }
     }
   };
 
