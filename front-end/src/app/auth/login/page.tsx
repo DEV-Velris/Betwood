@@ -96,7 +96,7 @@ export default function LoginPage() {
               <span>Se souvenir de moi</span>
             </label>
 
-            <Link href="/forgot-password" className={styles.forgotLink}>
+            <Link href="/auth/forget-password" className={styles.forgotLink}>
               Mot de passe oublié ?
             </Link>
           </div>
