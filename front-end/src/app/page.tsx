@@ -1,8 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { athletesApi } from '@/lib/athletes-api';
+import { competitionsApi } from '@/lib/competitions-api';
+import { Athlete } from '@/types/athlete';
+import { Competition } from '@/types/competition';
+import AthleteCard from '@/components/athletes/AthleteCard';
+import CompetitionCard from '@/components/competitions/CompetitionCard';
+import PickModal from '@/components/competitions/PickModal';
 import styles from './home.module.css';
 
 export default function Home() {
@@ -10,6 +17,157 @@ export default function Home() {
   const [selectedDiscipline, setSelectedDiscipline] = useState('axe');
   const [selectedCompetition, setSelectedCompetition] = useState<string | null>(null);
   const [betSlipItems, setBetSlipItems] = useState<any[]>([]);
+  const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [athletesLoading, setAthletesLoading] = useState(true);
+
+  // États pour les compétitions
+  const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [competitionsData, setCompetitionsData] = useState<Map<string, any>>(new Map());
+  const [competitionsLoading, setCompetitionsLoading] = useState(true);
+
+  // Modal states
+  const [pickModalOpen, setPickModalOpen] = useState(false);
+  const [pickModalType, setPickModalType] = useState<'global' | 'hotsaw'>('global');
+  const [selectedCompetitionId, setSelectedCompetitionId] = useState<string | null>(null);
+
+  // Récupérer les athlètes au chargement
+  useEffect(() => {
+    const fetchAthletes = async () => {
+      try {
+        setAthletesLoading(true);
+        const data = await athletesApi.getAllAthletes();
+        setAthletes(data);
+      } catch (error) {
+        console.error('Failed to fetch athletes:', error);
+      } finally {
+        setAthletesLoading(false);
+      }
+    };
+
+    fetchAthletes();
+  }, []);
+
+  // Récupérer les compétitions (données de test pour l'instant)
+  useEffect(() => {
+    const fetchCompetitions = async () => {
+      try {
+        setCompetitionsLoading(true);
+
+        // TODO: Remplacer par un vrai appel API quand la route sera disponible
+        // const data = await competitionsApi.getAllCompetitions();
+
+        // Pour l'instant, utilisons des données de test
+        const testCompetitions: Competition[] = [
+          {
+            id: 'comp_1',
+            name: 'Championnat du Monde 2025',
+            startAt: new Date('2025-12-01T10:00:00').toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: 'comp_2',
+            name: 'Trophée des Champions',
+            startAt: new Date('2025-11-15T14:00:00').toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        setCompetitions(testCompetitions);
+
+        // Récupérer les picks et résultats pour chaque compétition si l'utilisateur est connecté
+        if (user) {
+          const dataMap = new Map();
+          for (const comp of testCompetitions) {
+            try {
+              const data = await competitionsApi.getCompetitionWithPicks(comp.id);
+              dataMap.set(comp.id, data);
+            } catch (error) {
+              console.error(`Failed to fetch data for competition ${comp.id}:`, error);
+            }
+          }
+          setCompetitionsData(dataMap);
+        }
+      } catch (error) {
+        console.error('Failed to fetch competitions:', error);
+      } finally {
+        setCompetitionsLoading(false);
+      }
+    };
+
+    fetchCompetitions();
+  }, [user]);
+
+  const handleMakeGlobalPick = (competitionId: string) => {
+    if (!user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    setSelectedCompetitionId(competitionId);
+    setPickModalType('global');
+    setPickModalOpen(true);
+  };
+
+  const handleMakeHotSawPick = (competitionId: string) => {
+    if (!user) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    setSelectedCompetitionId(competitionId);
+    setPickModalType('hotsaw');
+    setPickModalOpen(true);
+  };
+
+  const handleConfirmPick = async (athleteId: string) => {
+    if (!selectedCompetitionId) return;
+
+    try {
+      if (pickModalType === 'global') {
+        await competitionsApi.upsertGlobalChampionPick(selectedCompetitionId, athleteId);
+      } else {
+        await competitionsApi.upsertHotSawPick(selectedCompetitionId, athleteId);
+      }
+
+      // Recharger les données de la compétition
+      const data = await competitionsApi.getCompetitionWithPicks(selectedCompetitionId);
+      setCompetitionsData(prev => {
+        const newMap = new Map(prev);
+        newMap.set(selectedCompetitionId, data);
+        return newMap;
+      });
+
+      // Ajouter au bet slip
+      const selectedAthlete = athletes.find(a => a.id === athleteId);
+      const selectedCompetition = competitions.find(c => c.id === selectedCompetitionId);
+
+      if (selectedAthlete && selectedCompetition) {
+        const betItem = {
+          matchId: `${selectedCompetitionId}-${pickModalType}`,
+          athleteName: `${selectedAthlete.firstName} ${selectedAthlete.lastName}`,
+          discipline: pickModalType === 'global' ? '🏆 Champion Global' : '🪚 Hot Saw',
+          odds: '1.00',
+          competition: selectedCompetition.name,
+        };
+
+        // Éviter les doublons
+        setBetSlipItems(prev => {
+          const exists = prev.some(item => item.matchId === betItem.matchId);
+          if (exists) {
+            return prev.map(item =>
+              item.matchId === betItem.matchId ? betItem : item
+            );
+          }
+          return [...prev, betItem];
+        });
+      }
+
+      setPickModalOpen(false);
+    } catch (error) {
+      console.error('Failed to save pick:', error);
+      throw error;
+    }
+  };
 
   const disciplines = [
     { id: 'all', name: 'Les plus populaires', icon: '', count: 0 },
@@ -93,6 +251,10 @@ export default function Home() {
               <div className={styles.loadingSpinner}></div>
             ) : user ? (
               <>
+                <div className={styles.userPoints}>
+                  <span className={styles.pointsValue}>1000</span>
+                  <span className={styles.pointsLabel}>points</span>
+                </div>
                 <span className={styles.userName}>
                   {user.name}
                 </span>
@@ -191,10 +353,9 @@ export default function Home() {
             {!user ? (
               <Link href="/auth/register" className={styles.promoBtn}>Commencer</Link>
             ) : (
-              <button className={styles.promoBtn}>Créer un groupe</button>
+              <Link href="/groups" className={styles.promoBtn}>Voir les groupes</Link>
             )}
           </div>
-
 
           {/* Category Filters */}
           <div className={styles.categoryFilters}>
@@ -282,6 +443,75 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {/* Competitions Section */}
+          <div className={styles.competitionsSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Compétitions</h2>
+              <p className={styles.sectionSubtitle}>Faites vos pronostics et suivez les résultats</p>
+            </div>
+
+            {competitionsLoading ? (
+              <div className={styles.competitionsLoading}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Chargement des compétitions...</p>
+              </div>
+            ) : competitions.length === 0 ? (
+              <div className={styles.competitionsEmpty}>
+                <p>Aucune compétition disponible pour le moment</p>
+              </div>
+            ) : (
+              <div className={styles.competitionsGrid}>
+                {competitions.map((competition) => {
+                  const compData = competitionsData.get(competition.id);
+                  return (
+                    <CompetitionCard
+                      key={competition.id}
+                      competition={competition}
+                      globalChampionPick={compData?.globalChampionPick}
+                      hotSawPick={compData?.hotSawPick}
+                      results={compData?.results}
+                      athletes={athletes}
+                      onMakeGlobalPick={handleMakeGlobalPick}
+                      onMakeHotSawPick={handleMakeHotSawPick}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Athletes Section */}
+          <div className={styles.athletesSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Athlètes</h2>
+              <p className={styles.sectionSubtitle}>Découvrez les champions du bûcheronnage sportif</p>
+            </div>
+
+            {athletesLoading ? (
+              <div className={styles.athletesLoading}>
+                <div className={styles.loadingSpinner}></div>
+                <p>Chargement des athlètes...</p>
+              </div>
+            ) : athletes.length === 0 ? (
+              <div className={styles.athletesEmpty}>
+                <p>Aucun athlète disponible pour le moment</p>
+              </div>
+            ) : (
+              <div className={styles.athletesGrid}>
+                {athletes.map((athlete) => (
+                  <AthleteCard
+                    key={athlete.id}
+                    athlete={athlete}
+                    onClick={(athlete) => {
+                      console.log('Athlete clicked:', athlete);
+                      // TODO: Ouvrir un modal ou naviguer vers la page de l'athlète
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </main>
 
         {/* Right Column - Bet Slip */}
@@ -326,6 +556,9 @@ export default function Home() {
                         setBetSlipItems(betSlipItems.filter((_, i) => i !== index));
                       }}>×</button>
                     </div>
+                    {item.competition && (
+                      <div className={styles.betItemCompetition}>{item.competition}</div>
+                    )}
                     <div className={styles.betItemName}>{item.athleteName}</div>
                     <div className={styles.betItemOdds}>Cote: {item.odds}</div>
                   </div>
@@ -333,22 +566,22 @@ export default function Home() {
 
                 <div className={styles.betSlipFooter}>
                   <div className={styles.stakeInput}>
-                    <label className={styles.stakeLabel}>MISE</label>
+                    <label className={styles.stakeLabel}>POINTS MISÉS</label>
                     <input
                       type="number"
-                      placeholder="0.00"
+                      placeholder="0"
                       className={styles.stakeField}
                     />
-                    <span className={styles.stakeCurrency}>€</span>
+                    <span className={styles.stakeCurrency}>pts</span>
                   </div>
 
                   <div className={styles.potentialWin}>
-                    <span className={styles.potentialWinLabel}>GAINS POTENTIELS</span>
-                    <span className={styles.potentialWinValue}>0.00 €</span>
+                    <span className={styles.potentialWinLabel}>POINTS POTENTIELS</span>
+                    <span className={styles.potentialWinValue}>0 pts</span>
                   </div>
 
                   <button className={styles.betButton}>
-                    Placer le pari
+                    Valider les pronostics
                   </button>
                 </div>
               </div>
@@ -356,6 +589,16 @@ export default function Home() {
           </div>
         </aside>
       </div>
+
+      {/* Pick Modal */}
+      <PickModal
+        isOpen={pickModalOpen}
+        onClose={() => setPickModalOpen(false)}
+        title={pickModalType === 'global' ? 'Choisir le Champion Global' : 'Choisir le Gagnant Hot Saw'}
+        athletes={athletes}
+        onConfirm={handleConfirmPick}
+        isLoading={athletesLoading}
+      />
     </div>
   );
 }

@@ -179,6 +179,24 @@ class ApiClient {
     }
   }
 
+  async verifyEmail(token: string): Promise<{ status: boolean; message?: string }> {
+    try {
+      const response = await this.client.post('/verify-email', { token });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ status: boolean; message?: string }> {
+    try {
+      const response = await this.client.post('/send-verification-email', { email });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   private handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
       // Better Auth retourne des erreurs dans ce format:

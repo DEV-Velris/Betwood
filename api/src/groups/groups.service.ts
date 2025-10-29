@@ -18,6 +18,23 @@ export class GroupsService {
   MASK = 0b11100000;
   SHIFT = 3;
 
+  async getAllPublicGroups() {
+    return this.prisma.pronoGroup.findMany({
+      where: {
+        visibility: GroupVisibility.PUBLIC,
+      },
+      include: {
+        competition: true,
+        _count: {
+          select: { members: true },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   generateInviteCode(length: number = 8): string {
     const buf = randomBytes(length);
     let code = '';

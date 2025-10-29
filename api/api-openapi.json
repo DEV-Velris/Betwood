@@ -2,6 +2,19 @@
   "openapi": "3.0.0",
   "paths": {
     "/groups": {
+      "get": {
+        "operationId": "GroupsController_getAllPublicGroups",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get all public groups",
+        "tags": [
+          "Groups"
+        ]
+      },
       "post": {
         "operationId": "GroupsController_createGroup",
         "parameters": [],
@@ -95,6 +108,21 @@
         "summary": "Leave a group",
         "tags": [
           "Groups"
+        ]
+      }
+    },
+    "/competitions": {
+      "get": {
+        "operationId": "CompetitionsController_getAllCompetitions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Get all competitions (public)",
+        "tags": [
+          "competitions"
         ]
       }
     },
@@ -232,7 +260,7 @@
             "description": ""
           }
         },
-        "summary": "Get competition results (champion and Hot Saw winner)",
+        "summary": "Get competition results (champion and Hot Saw winner) - Public",
         "tags": [
           "competitions"
         ]
@@ -279,7 +307,7 @@
             "description": ""
           }
         },
-        "summary": "List all athletes",
+        "summary": "List all athletes (public)",
         "tags": [
           "athletes"
         ]
@@ -302,7 +330,7 @@
             "description": "Athlete created"
           }
         },
-        "summary": "Create a new athlete",
+        "summary": "Create a new athlete (requires authentication)",
         "tags": [
           "athletes"
         ]
@@ -326,7 +354,7 @@
             "description": ""
           }
         },
-        "summary": "Get athlete by ID",
+        "summary": "Get athlete by ID (public)",
         "tags": [
           "athletes"
         ]
@@ -358,7 +386,7 @@
             "description": "Athlete updated"
           }
         },
-        "summary": "Update an existing athlete",
+        "summary": "Update an existing athlete (requires authentication)",
         "tags": [
           "athletes"
         ]
@@ -380,7 +408,7 @@
             "description": "Athlete deleted"
           }
         },
-        "summary": "Delete an athlete",
+        "summary": "Delete an athlete (requires authentication)",
         "tags": [
           "athletes"
         ]

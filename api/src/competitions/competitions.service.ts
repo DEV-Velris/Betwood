@@ -9,6 +9,12 @@ import { PrismaService } from '../prisma.service';
 export class CompetitionsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getAllCompetitions() {
+    return this.prisma.competition.findMany({
+      orderBy: { startAt: 'desc' },
+    });
+  }
+
   async ensureCompetition(competitionId: string) {
     const competition = await this.prisma.competition.findUnique({
       where: { id: competitionId },
