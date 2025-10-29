@@ -11,8 +11,18 @@ async function bootstrap() {
     bodyParser: false,
   });
 
+  // CORS configuration
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  });
+
   // Helmet middleware for security headers
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
 
   const config = new DocumentBuilder()
     .setTitle('Private API')

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpStatus, Param, Put } from '@nestjs/common';
 import { CompetitionsService } from './competitions.service';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import { Session, type UserSession, AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import { UpsertPickDto } from './dtos/upsert-pick.dto';
 import { UpdateResultsDto } from './dtos/update-results.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -9,6 +9,13 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 @Controller('competitions')
 export class CompetitionsController {
   constructor(private readonly competitionsService: CompetitionsService) {}
+
+  @AllowAnonymous()
+  @Get()
+  @ApiOperation({ summary: 'Get all competitions (public)' })
+  getAllCompetitions() {
+    return this.competitionsService.getAllCompetitions();
+  }
 
   // Global champion pick
   @Put(':competitionId/picks/global-champion')
@@ -69,9 +76,10 @@ export class CompetitionsController {
   }
 
   // Results
+  @AllowAnonymous()
   @Get(':competitionId/results')
   @ApiOperation({
-    summary: 'Get competition results (champion and Hot Saw winner)',
+    summary: 'Get competition results (champion and Hot Saw winner) - Public',
   })
   getResults(@Param('competitionId') competitionId: string) {
     return this.competitionsService.getResults(competitionId);
@@ -85,6 +93,7 @@ export class CompetitionsController {
   updateResults(
     @Param('competitionId') competitionId: string,
     @Body() body: UpdateResultsDto,
+    @Session() session: UserSession,
   ) {
     return this.competitionsService.updateResults({
       competitionId,

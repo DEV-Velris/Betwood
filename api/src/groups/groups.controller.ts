@@ -9,12 +9,19 @@ import {
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dtos/createGroup.dto';
-import { Session, type UserSession } from '@thallesp/nestjs-better-auth';
+import { Session, type UserSession, AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
+
+  @AllowAnonymous()
+  @Get()
+  @ApiOperation({ summary: 'Get all public groups' })
+  getAllPublicGroups() {
+    return this.groupsService.getAllPublicGroups();
+  }
 
   @Post()
   @ApiOperation({
